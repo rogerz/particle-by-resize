@@ -10,7 +10,7 @@ function ParticleError(message) {
 ParticleError.prototype = Object.create(Error.prototype);
 
 function ParticleByGrid(options) {
-  this.options = _.defaults(options, {
+  this.options = _.defaults(options || {}, {
     scale: 0.25
   });
   this.data = [];
@@ -38,9 +38,11 @@ ParticleByGrid.prototype.sampling = function (canvas) {
       return 0;
     }
   }
-  for (var i = 0; i < (imageData.length + 1)/ 4; i++) {
-    this.data.push(occupied(imageData[i * 4]));
+
+  for (var i = 0; i < imageData.length; i = i + 4) {
+    this.data.push(occupied(imageData.slice(i, i+4)));
   }
+
   this.width = cw;
   this.height = ch;
   return this;
