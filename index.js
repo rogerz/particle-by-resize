@@ -9,7 +9,7 @@ function ParticleError(message) {
 }
 ParticleError.prototype = Object.create(Error.prototype);
 
-function ParticleByGrid(options) {
+function ParticleByResize(options) {
   this.options = _.assign({
     scale: 0.25
   }, options);
@@ -17,7 +17,7 @@ function ParticleByGrid(options) {
   this.width = this.height = 0;
 }
 
-ParticleByGrid.prototype.sampling = function (canvas) {
+ParticleByResize.prototype.sampling = function (canvas) {
   var scale = this.options.scale;
   var cw = canvas.width * scale,  // context width
     ch = canvas.height * scale; // context height
@@ -28,19 +28,19 @@ ParticleByGrid.prototype.sampling = function (canvas) {
   resizedCanvas.height = ch;
   c.drawImage(canvas, 0, 0, cw, ch);
 
-  var imageData = c.getImageData(0, 0, cw, ch);
+  var data = c.getImageData(0, 0, cw, ch).data;
   this.data = [];
-  function occupied(imageData) {
+  function occupied(pixelRgba) {
     // imageData = [r,g,b,a]
-    if (imageData[3] > 0) {
+    if (pixelRgba[3] > 0) {
       return 1;
     } else {
       return 0;
     }
   }
 
-  for (var i = 0; i < imageData.length; i = i + 4) {
-    this.data.push(occupied(imageData.slice(i, i+4)));
+  for (var i = 0; i < data.length; i = i + 4) {
+    this.data.push(occupied(Array.prototype.slice.call(data, i, i+4)));
   }
 
   this.width = cw;
@@ -48,22 +48,22 @@ ParticleByGrid.prototype.sampling = function (canvas) {
   return this;
 };
 
-function createIndexInBg(background, newParticles, x, y) {
-  var bgData = background.data;
-  var newData = newParticles.data;
-  return function indexInBg(i) {
-    var xRel = i % newData.width;
-    var yRel = i / newData.height;
-    var xBg = x + xRel;
-    var yBg = y + yRel;
-    return xBg + yBg * bgData.height;
-  };
-}
 
 // @arg fn takes two data and a result as arguments. The result includes
 //    key "done" to indicator the end of iterator and
 //    key "data" for the return data
 function createIterator(fn) {
+  function createIndexInBg(background, newParticles, x, y) {
+    var bgData = background.data;
+    var newData = newParticles.data;
+    return function indexInBg(i) {
+      var xRel = i % newData.width;
+      var yRel = i / newData.height;
+      var xBg = x + xRel;
+      var yBg = y + yRel;
+      return xBg + yBg * bgData.height;
+    };
+  }
   return function(background, particles, x, y) {
     if (particles.width + x > background.width || particles.height + y > background.height) {
       throw new ParticleError('placed out of bound');
@@ -85,7 +85,7 @@ function createIterator(fn) {
   };
 }
 
-ParticleByGrid.prototype.collided = createIterator(function (datumInBg, datumInPt, result) {
+ParticleByResize.prototype.collided = createIterator(function (datumInBg, datumInPt, result) {
   if (datumInBg === 0 && datumInPt === 0) {
     result.done = false;
     result.data = false;
@@ -95,7 +95,7 @@ ParticleByGrid.prototype.collided = createIterator(function (datumInBg, datumInP
   }
 });
 
-ParticleByGrid.prototype.merge = createIterator(function (datumInBg, datumInPt, result) {
+ParticleByResize.prototype.merge = createIterator(function (datumInBg, datumInPt, result) {
   if (result.data === null) {
     result.data = [];
   }
@@ -107,4 +107,4 @@ ParticleByGrid.prototype.merge = createIterator(function (datumInBg, datumInPt, 
   result.done = false;
 });
 
-module.exports = ParticleByGrid;
+module.exports = ParticleByResize;
