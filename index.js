@@ -10,9 +10,9 @@ function ParticleError(message) {
 ParticleError.prototype = Object.create(Error.prototype);
 
 function ParticleByGrid(options) {
-  this.options = _.defaults(options || {}, {
+  this.options = _.assign({
     scale: 0.25
-  });
+  }, options);
   this.data = [];
   this.width = this.height = 0;
 }

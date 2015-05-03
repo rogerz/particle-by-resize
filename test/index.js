@@ -16,7 +16,7 @@ describe('grid', function() {
     expect(grid.merge).to.be.a('function');
     expect(grid.collided).to.be.a('function');
   });
-/*
+
   it('should initialize as an empty canvas', function() {
     expect(grid.data).to.eql([]);
     expect(grid.width).to.equal(0);
@@ -36,5 +36,4 @@ describe('grid', function() {
     expect(grid.height).to.equal(1);
     expect(grid.data).to.eql([1]);
   });
-*/
 });
