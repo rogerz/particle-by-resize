@@ -9,7 +9,7 @@ function ParticleError(message) {
 }
 ParticleError.prototype = Object.create(Error.prototype);
 
-function ParticleByResize(options) {
+function ParticleByGrid(options) {
   this.options = _.defaults(options, {
     scale: 0.25
   });
@@ -17,7 +17,7 @@ function ParticleByResize(options) {
   this.width = this.height = 0;
 }
 
-ParticleByResize.prototype.sampling = function (canvas) {
+ParticleByGrid.prototype.sampling = function (canvas) {
   var scale = this.options.scale;
   var cw = canvas.width * scale,  // context width
     ch = canvas.height * scale; // context height
@@ -83,7 +83,7 @@ function createIterator(fn) {
   };
 }
 
-ParticleByResize.prototype.collided = createIterator(function (datumInBg, datumInPt, result) {
+ParticleByGrid.prototype.collided = createIterator(function (datumInBg, datumInPt, result) {
   if (datumInBg === 0 && datumInPt === 0) {
     result.done = false;
     result.data = false;
@@ -93,7 +93,7 @@ ParticleByResize.prototype.collided = createIterator(function (datumInBg, datumI
   }
 });
 
-ParticleByResize.prototype.merge = createIterator(function (datumInBg, datumInPt, result) {
+ParticleByGrid.prototype.merge = createIterator(function (datumInBg, datumInPt, result) {
   if (result.data === null) {
     result.data = [];
   }
@@ -105,4 +105,4 @@ ParticleByResize.prototype.merge = createIterator(function (datumInBg, datumInPt
   result.done = false;
 });
 
-module.exports = ParticleByResize;
+module.exports = ParticleByGrid;
