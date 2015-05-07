@@ -1,13 +1,7 @@
 'use strict';
 
 var _ = require('lodash/lodash');
-
-function ParticleError(message) {
-  Error.captureStackTrace(this, this.constructor);
-  this.name =this.constructor.name;
-  this.message = message;
-}
-ParticleError.prototype = Object.create(Error.prototype);
+var format = require('samsonjs/format');
 
 function ParticleByResize(options) {
   this.options = _.assign({
@@ -23,9 +17,10 @@ ParticleByResize.prototype.sampling = function (canvas) {
     ch = canvas.height * scale; // context height
 
   var resizedCanvas = document.createElement('canvas');
-  var c = resizedCanvas.getContext('2d');
   resizedCanvas.width = cw;
   resizedCanvas.height = ch;
+  var c = resizedCanvas.getContext('2d');
+  c.drawImage(canvas, 0, 0);
   c.drawImage(canvas, 0, 0, cw, ch);
 
   var data = c.getImageData(0, 0, cw, ch).data;
@@ -53,45 +48,68 @@ ParticleByResize.prototype.sampling = function (canvas) {
 //    key "done" to indicator the end of iterator and
 //    key "data" for the return data
 function createIterator(fn) {
-  function createIndexInBg(background, newParticles, x, y) {
-    var bgData = background.data;
-    var newData = newParticles.data;
+  var result = {
+    done: false,
+    data: null
+  };
+
+  function createIndexInBg(background, particles, x, y) {
     return function indexInBg(i) {
-      var xRel = i % newData.width;
-      var yRel = i / newData.height;
+      var xRel = i % particles.width;
+      var yRel = i / particles.height;
       var xBg = x + xRel;
       var yBg = y + yRel;
-      return xBg + yBg * bgData.height;
+      if (xBg > background.width || xBg < 0 || yBg > background.height || yBg < 0) {
+        throw new Error(format('out of bound: %d, %d', xBg, yBg));
+      }
+      return xBg + yBg * background.width;
     };
   }
-  return function(background, particles, x, y) {
+
+  return function(particles, x, y) {
+    // reset the result when no argument given
+    if (arguments.length === 0) {
+      result.done = false;
+      result.data = null;
+      return result.data;
+    }
+
+    if (isNaN(x) || isNaN(y)) {
+      throw new Error(format('invalid offset: %d, %d', x, y));
+    }
+
+    var background = this;
     if (particles.width + x > background.width || particles.height + y > background.height) {
-      throw new ParticleError('placed out of bound');
+      throw new Error('placed out of bound');
     }
     var bgData = background.data;
     var ptData = particles.data;
     var indexInBg = createIndexInBg(background, particles, x, y);
-    var result = {
-      done: false,
-      data: null
-    };
     for (var i = 0; i < ptData.length; i++) {
       var j = indexInBg(i);
-      fn(bgData[j], ptData[i], result);
+      try {
+        fn(bgData[j], ptData[i], result);
+      } catch(e) {
+        throw new Error(format('invalid data bg[%d], pt[%d]', j, i));
+      }
       if (result.done) {
         return result.data;
       }
     }
+    result.done = true;
+    return result.data;
   };
 }
 
-ParticleByResize.prototype.collided = createIterator(function (datumInBg, datumInPt, result) {
-  if (datumInBg === 0 && datumInPt === 0) {
+ParticleByResize.prototype.collidedWith = createIterator(function (datumInBg, datumInPt, result) {
+  if (datumInBg === 0 || datumInPt === 0) {
     result.done = false;
     result.data = false;
-  } else {
+  } else if (datumInBg === 1 && datumInPt === 1) {
     result.done = true;
     result.data = true;
+  } else {
+    throw new Error(format('invalid data: %s or %s', datumInBg, datumInPt));
   }
 });
 
