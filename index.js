@@ -43,86 +43,58 @@ ParticleByResize.prototype.sampling = function (canvas) {
   return this;
 };
 
-
-// @arg fn takes two data and a result as arguments. The result includes
-//    key "done" to indicator the end of iterator and
-//    key "data" for the return data
-function createIterator(fn) {
-  var result = {
-    done: false,
-    data: null
-  };
-
-  function createIndexInBg(background, particles, x, y) {
-    return function indexInBg(i) {
-      var xRel = i % particles.width;
-      var yRel = i / particles.height;
+ParticleByResize.prototype.collidedWith = function collidedWith(particle, x, y) {
+  var background = this;
+  var indexInBg = (function (bg, pt) {
+    return function (i) {
+      var xRel = i % pt.width;
+      var yRel = Math.floor(i / pt.height);
       var xBg = x + xRel;
       var yBg = y + yRel;
-      if (xBg > background.width || xBg < 0 || yBg > background.height || yBg < 0) {
-        throw new Error(format('out of bound: %d, %d', xBg, yBg));
+      if (xBg >= bg.width || xBg < 0 || yBg >= bg.height || yBg < 0) {
+        return null;
       }
-      return xBg + yBg * background.width;
+      return xBg + yBg * bg.width;
     };
-  }
+  })(background, particle);
 
-  return function(particles, x, y) {
-    // reset the result when no argument given
-    if (arguments.length === 0) {
-      result.done = false;
-      result.data = null;
-      return result.data;
-    }
-
-    if (isNaN(x) || isNaN(y)) {
-      throw new Error(format('invalid offset: %d, %d', x, y));
-    }
-
-    var background = this;
-    if (particles.width + x > background.width || particles.height + y > background.height) {
-      throw new Error('placed out of bound');
-    }
-    var bgData = background.data;
-    var ptData = particles.data;
-    var indexInBg = createIndexInBg(background, particles, x, y);
-    for (var i = 0; i < ptData.length; i++) {
-      var j = indexInBg(i);
-      try {
-        fn(bgData[j], ptData[i], result);
-      } catch(e) {
-        throw new Error(format('invalid data bg[%d], pt[%d]', j, i));
-      }
-      if (result.done) {
-        return result.data;
+  var bgData = background.data;
+  var ptData = particle.data;
+  for (var i = 0; i < ptData.length; i++) {
+    var j = indexInBg(i);
+    if (j !== null) {
+      if (bgData[j] === 1 && ptData[i] === 1) {
+        return true;
       }
     }
-    result.done = true;
-    return result.data;
-  };
-}
+  }
+  return false;
+};
 
-ParticleByResize.prototype.collidedWith = createIterator(function (datumInBg, datumInPt, result) {
-  if (datumInBg === 0 || datumInPt === 0) {
-    result.done = false;
-    result.data = false;
-  } else if (datumInBg === 1 && datumInPt === 1) {
-    result.done = true;
-    result.data = true;
-  } else {
-    throw new Error(format('invalid data: %s or %s', datumInBg, datumInPt));
+ParticleByResize.prototype.composite = function composite(particle, x, y) {
+  var background = this;
+  var indexInPt = (function (bg, pt) {
+    return function (i) {
+      var xRel = i % bg.width;
+      var yRel = Math.floor(i / bg.height);
+      var xPt = xRel - x;
+      var yPt = yRel - y;
+      if (xPt < 0 || xPt >= pt.width || yPt < 0 || yPt >= pt.height) {
+        return null;
+      }
+      return xPt + yPt * pt.width;
+    };
+  })(background, particle);
+  var bgData = background.data;
+  var ptData = particle.data;
+  for (var i = 0; i < bgData.length; i ++) {
+    var j = indexInPt(i);
+    if (j !== null) {
+      if (ptData[j] === 1) {
+        bgData[i] = 1;
+      }
+    }
   }
-});
-
-ParticleByResize.prototype.merge = createIterator(function (datumInBg, datumInPt, result) {
-  if (result.data === null) {
-    result.data = [];
-  }
-  if (datumInBg === 0 && datumInPt === 0) {
-    result.data.push(0);
-  } else {
-    result.data.push(1);
-  }
-  result.done = false;
-});
+};
 
 module.exports = ParticleByResize;
