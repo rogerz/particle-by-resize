@@ -1,7 +1,6 @@
 'use strict';
 
 var _ = require('lodash/lodash');
-var format = require('samsonjs/format');
 
 function ParticleByResize(options) {
   this.options = _.assign({
@@ -13,8 +12,8 @@ function ParticleByResize(options) {
 
 ParticleByResize.prototype.sampling = function (canvas) {
   var scale = this.options.scale;
-  var cw = canvas.width * scale,  // context width
-    ch = canvas.height * scale; // context height
+  var cw = Math.round(canvas.width * scale),  // context width
+    ch = Math.round(canvas.height * scale); // context height
 
   var resizedCanvas = document.createElement('canvas');
   resizedCanvas.width = cw;
@@ -45,18 +44,18 @@ ParticleByResize.prototype.sampling = function (canvas) {
 
 ParticleByResize.prototype.collidedWith = function collidedWith(particle, x, y) {
   var background = this;
-  var indexInBg = (function (bg, pt) {
+  var indexInBg = (function (bg, pt, x, y) {
     return function (i) {
       var xRel = i % pt.width;
-      var yRel = Math.floor(i / pt.height);
+      var yRel = Math.floor(i / pt.width);
       var xBg = x + xRel;
       var yBg = y + yRel;
       if (xBg >= bg.width || xBg < 0 || yBg >= bg.height || yBg < 0) {
         return null;
       }
-      return xBg + yBg * bg.width;
+      return Math.round(xBg + yBg * bg.width);
     };
-  })(background, particle);
+  })(background, particle, Math.floor(x), Math.floor(y));
 
   var bgData = background.data;
   var ptData = particle.data;
@@ -73,18 +72,18 @@ ParticleByResize.prototype.collidedWith = function collidedWith(particle, x, y) 
 
 ParticleByResize.prototype.composite = function composite(particle, x, y) {
   var background = this;
-  var indexInPt = (function (bg, pt) {
+  var indexInPt = (function (bg, pt, x, y) {
     return function (i) {
       var xRel = i % bg.width;
-      var yRel = Math.floor(i / bg.height);
+      var yRel = Math.floor(i / bg.width);
       var xPt = xRel - x;
       var yPt = yRel - y;
       if (xPt < 0 || xPt >= pt.width || yPt < 0 || yPt >= pt.height) {
         return null;
       }
-      return xPt + yPt * pt.width;
+      return Math.round(xPt + yPt * pt.width);
     };
-  })(background, particle);
+  })(background, particle, Math.floor(x), Math.floor(y));
   var bgData = background.data;
   var ptData = particle.data;
   for (var i = 0; i < bgData.length; i ++) {
