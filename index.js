@@ -44,6 +44,11 @@ ParticleByResize.prototype.sampling = function (canvas) {
 
 ParticleByResize.prototype.collidedWith = function collidedWith(change, x, y) {
   var base = this;
+
+  if (x < 0 || x + change.width > base.width || y < 0 || y + change.height > base.height) {
+    throw new Error('out of bound');
+  }
+
   var indexInBg = (function (bg, pt, x, y) {
     return function (i) {
       var xRel = i % pt.width;
@@ -72,6 +77,11 @@ ParticleByResize.prototype.collidedWith = function collidedWith(change, x, y) {
 
 ParticleByResize.prototype.composite = function composite(change, x, y) {
   var base = this;
+
+  if (x < 0 || x + change.width > base.width || y < 0 || y + change.height > base.height) {
+    throw new Error('out of bound');
+  }
+
   var indexInPt = (function (bg, pt, x, y) {
     return function (i) {
       var xRel = i % bg.width;
@@ -84,6 +94,7 @@ ParticleByResize.prototype.composite = function composite(change, x, y) {
       return Math.round(xPt + yPt * pt.width);
     };
   })(base, change, Math.floor(x), Math.floor(y));
+
   var baseData = base.data;
   var chngData = change.data;
   for (var i = 0; i < baseData.length; i ++) {
