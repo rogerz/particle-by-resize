@@ -42,8 +42,8 @@ ParticleByResize.prototype.sampling = function (canvas) {
   return this;
 };
 
-ParticleByResize.prototype.collidedWith = function collidedWith(particle, x, y) {
-  var background = this;
+ParticleByResize.prototype.collidedWith = function collidedWith(change, x, y) {
+  var base = this;
   var indexInBg = (function (bg, pt, x, y) {
     return function (i) {
       var xRel = i % pt.width;
@@ -55,14 +55,14 @@ ParticleByResize.prototype.collidedWith = function collidedWith(particle, x, y) 
       }
       return Math.round(xBg + yBg * bg.width);
     };
-  })(background, particle, Math.floor(x), Math.floor(y));
+  })(base, change, Math.floor(x), Math.floor(y));
 
-  var bgData = background.data;
-  var ptData = particle.data;
-  for (var i = 0; i < ptData.length; i++) {
+  var baseData = base.data;
+  var chngData = change.data;
+  for (var i = 0; i < chngData.length; i++) {
     var j = indexInBg(i);
     if (j !== null) {
-      if (bgData[j] === 1 && ptData[i] === 1) {
+      if (baseData[j] === 1 && chngData[i] === 1) {
         return true;
       }
     }
@@ -70,8 +70,8 @@ ParticleByResize.prototype.collidedWith = function collidedWith(particle, x, y) 
   return false;
 };
 
-ParticleByResize.prototype.composite = function composite(particle, x, y) {
-  var background = this;
+ParticleByResize.prototype.composite = function composite(change, x, y) {
+  var base = this;
   var indexInPt = (function (bg, pt, x, y) {
     return function (i) {
       var xRel = i % bg.width;
@@ -83,14 +83,14 @@ ParticleByResize.prototype.composite = function composite(particle, x, y) {
       }
       return Math.round(xPt + yPt * pt.width);
     };
-  })(background, particle, Math.floor(x), Math.floor(y));
-  var bgData = background.data;
-  var ptData = particle.data;
-  for (var i = 0; i < bgData.length; i ++) {
+  })(base, change, Math.floor(x), Math.floor(y));
+  var baseData = base.data;
+  var chngData = change.data;
+  for (var i = 0; i < baseData.length; i ++) {
     var j = indexInPt(i);
     if (j !== null) {
-      if (ptData[j] === 1) {
-        bgData[i] = 1;
+      if (chngData[j] === 1) {
+        baseData[i] = 1;
       }
     }
   }
