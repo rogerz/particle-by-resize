@@ -4,7 +4,7 @@ var _ = require('lodash/lodash');
 
 function ParticleByResize(options) {
   this.options = _.assign({
-    scale: 0.25
+    scale: 1
   }, options);
   this.data = [];
   this.width = this.height = 0;
@@ -12,15 +12,24 @@ function ParticleByResize(options) {
 
 ParticleByResize.prototype.sampling = function (canvas) {
   var scale = this.options.scale;
-  var cw = Math.round(canvas.width * scale),  // context width
-    ch = Math.round(canvas.height * scale); // context height
+  var c, cw, ch;
 
-  var resizedCanvas = document.createElement('canvas');
-  resizedCanvas.width = cw;
-  resizedCanvas.height = ch;
-  var c = resizedCanvas.getContext('2d');
-  c.drawImage(canvas, 0, 0);
-  c.drawImage(canvas, 0, 0, cw, ch);
+  if (scale === 1) {
+    c = canvas.getContext('2d');
+    cw = canvas.width;
+    ch = canvas.height;
+  } else {
+    var resizedCanvas = document.createElement('canvas');
+
+    cw = Math.round(canvas.width * scale);
+    ch = Math.round(canvas.height * scale);
+    resizedCanvas.width = cw;
+    resizedCanvas.height = ch;
+
+    c = resizedCanvas.getContext('2d');
+    c.drawImage(canvas, 0, 0);
+    c.drawImage(canvas, 0, 0, cw, ch);
+  }
 
   var data = c.getImageData(0, 0, cw, ch).data;
   this.data = [];

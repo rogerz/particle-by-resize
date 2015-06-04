@@ -1,5 +1,5 @@
 'use strict';
-var chai = require('chaijs/chai');
+var chai = require('chaijs/chai@2.3.0');
 var expect = chai.expect;
 
 var Particle = require('..');
@@ -9,7 +9,9 @@ describe('particle', function() {
     var particle;
 
     before(function () {
-      particle = new Particle();
+      particle = new Particle({
+        scale: 0.25
+      });
     });
 
     it('should have interfaces', function(){
