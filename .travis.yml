@@ -1,7 +1,8 @@
 language: node_js
 node_js:
   - stable
+  - iojs
 install:
   - npm install -g duo duo-test phantomjs
 script:
-  - make test
+  - npm test

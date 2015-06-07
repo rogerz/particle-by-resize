@@ -1,5 +1,5 @@
 'use strict';
-var chai = require('chaijs/chai@2.3.0');
+var chai = require('chai');
 var expect = chai.expect;
 
 var Particle = require('..');

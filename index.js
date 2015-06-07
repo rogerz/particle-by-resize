@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('lodash/lodash');
+var _ = require('lodash');
 
 function ParticleByResize(options) {
   this.options = _.assign({

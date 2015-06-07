@@ -1,0 +1,33 @@
+{
+  "name": "particle-by-resize",
+  "version": "1.0.0",
+  "description": "create image particles",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "browserify index.js > bundle.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerz/particle-by-resize.git"
+  },
+  "keywords": [
+    "image",
+    "particle"
+  ],
+  "author": "rogerz <rogerz.zhang@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rogerz/particle-by-resize/issues"
+  },
+  "homepage": "https://github.com/rogerz/particle-by-resize#readme",
+  "dependencies": {
+    "lodash": "^3.9.3"
+  },
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "mocha": "^2.2.5"
+  }
+}
