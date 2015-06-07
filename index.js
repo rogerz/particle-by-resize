@@ -12,24 +12,15 @@ function ParticleByResize(options) {
 
 ParticleByResize.prototype.sampling = function (canvas) {
   var scale = this.options.scale;
-  var c, cw, ch;
 
-  if (scale === 1) {
-    c = canvas.getContext('2d');
-    cw = canvas.width;
-    ch = canvas.height;
-  } else {
-    var resizedCanvas = document.createElement('canvas');
+  var resizedCanvas = document.createElement('canvas');
+  var cw = Math.round(canvas.width * scale);
+  var ch = Math.round(canvas.height * scale);
+  resizedCanvas.width = cw;
+  resizedCanvas.height = ch;
 
-    cw = Math.round(canvas.width * scale);
-    ch = Math.round(canvas.height * scale);
-    resizedCanvas.width = cw;
-    resizedCanvas.height = ch;
-
-    c = resizedCanvas.getContext('2d');
-    c.drawImage(canvas, 0, 0);
-    c.drawImage(canvas, 0, 0, cw, ch);
-  }
+  var c = resizedCanvas.getContext('2d');
+  c.drawImage(canvas, 0, 0, cw, ch);
 
   var data = c.getImageData(0, 0, cw, ch).data;
   this.data = [];
