@@ -45,10 +45,6 @@ ParticleByResize.prototype.sampling = function (imageSource) {
 ParticleByResize.prototype.collidedWith = function collidedWith(change, x, y) {
   var base = this;
 
-  if (x < 0 || x + change.width > base.width || y < 0 || y + change.height > base.height) {
-    throw new Error('out of bound');
-  }
-
   var indexInBg = (function (bg, pt, x, y) {
     return function (i) {
       var xRel = i % pt.width;
@@ -56,7 +52,7 @@ ParticleByResize.prototype.collidedWith = function collidedWith(change, x, y) {
       var xBg = x + xRel;
       var yBg = y + yRel;
       if (xBg >= bg.width || xBg < 0 || yBg >= bg.height || yBg < 0) {
-        return null;
+        throw new Error('out of bound');
       }
       return Math.round(xBg + yBg * bg.width);
     };
@@ -65,9 +61,9 @@ ParticleByResize.prototype.collidedWith = function collidedWith(change, x, y) {
   var baseData = base.data;
   var chngData = change.data;
   for (var i = 0; i < chngData.length; i++) {
-    var j = indexInBg(i);
-    if (j !== null) {
-      if (baseData[j] === 1 && chngData[i] === 1) {
+    if (chngData[i] === 1) {
+      var j = indexInBg(i);
+      if (baseData[j] === 1) {
         return true;
       }
     }
